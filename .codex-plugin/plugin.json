@@ -1,0 +1,13 @@
+{
+  "name": "orbit",
+  "version": "1.0.0",
+  "description": "Discover APIs from the Postman API Network using Postman Orbit, an agent-friendly search API designed for AI-powered app design.",
+  "skills": "./skills/",
+  "author": "Postman DevRel",
+  "homepage": "https://github.com/Postman-Devrel/orbit-codex-plugin",
+  "repository": "https://github.com/Postman-Devrel/orbit-codex-plugin",
+  "keywords": ["api", "discovery", "postman", "orbit", "agent"],
+  "category": "developer-tools",
+  "displayName": "Postman Orbit",
+  "shortDescription": "Agent-friendly API discovery from the Postman API Network"
+}
