@@ -50,6 +50,22 @@ Search for multiple capabilities at once:
 
 Results are automatically saved to the `orbit-output/` directory as markdown files for later reference.
 
+## Design process
+
+Orbit works best when you use it at the start of a project to build an API blueprint before writing code. Here's the workflow:
+
+1. **Describe what you're building.** Tell your agent the app you want to create, including the key capabilities it needs (payments, auth, email, etc.). You don't need to know which APIs exist yet.
+
+2. **Let the agent query Orbit.** The agent breaks your description into capability queries, hits the Orbit API for each one, and returns candidate endpoints with their evaluateGuide breakdowns.
+
+3. **Read the gaps.** The evaluateGuide's "Not supported" lines are the most valuable part. They tell you what each API can't do, so you can identify missing capabilities before you've written any integration code.
+
+4. **Iterate.** Use those gaps as your next round of queries. "Find me APIs that handle payment refunds" or "I need an auth provider that supports token refresh." Each round narrows the design.
+
+5. **Save the blueprint.** The agent saves results to `orbit-output/` as a structured file you can reference throughout the project. This becomes your API design document, readable by both humans and agents.
+
+The goal is to make API selection decisions intentionally at design time, not discover limitations mid-sprint after you've already integrated half the stack.
+
 ## The Orbit API
 
 The plugin calls a single endpoint:
