@@ -81,9 +81,9 @@ If `meta.total` exceeds the number of returned results, mention that more result
 When the user has a concrete task and has settled on endpoints, call the `integrate` tool:
 
 - `task` — what they are building (required, max 512 characters)
-- `resources` — **1 to 10** entries of `{id, type}`, where `id` is a search result's `id` and `type` is that result's `resourceType`
+- `resources` — entries of `{id, type}`, where `id` is a search result's `id` and `type` is that result's `resourceType`
 
-More than 10 resources is rejected. If the user needs more, split the work into several `integrate` calls grouped by sub-task.
+The schema allows up to 10 resources, but **keep calls narrow — 2 or 3 related endpoints**. Wide calls have been observed to return a one-line restatement instead of a real brief. To cover more endpoints, make several focused calls grouped by sub-task rather than one wide call.
 
 The response contains a `taskBrief` covering authentication requirements, base URLs, ordered request steps, parameters, expected responses, dependencies between steps, and other considerations. Present the brief and save it alongside the search results.
 
