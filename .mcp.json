@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "orbit": {
+      "type": "streamable-http",
+      "url": "https://mcp.buildwithorbit.ai/mcp"
+    }
+  }
+}
