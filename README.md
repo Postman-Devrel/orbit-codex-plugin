@@ -50,16 +50,24 @@ Search for multiple capabilities at once:
 ### Example output
 
 ```
-### Results for: "send transactional email"
+### Results for: "Stripe create subscription"
 
-**Send a transactional email** (Brevo)
+**Create a subscription** (Stripe / Stripe Billing)
 - Method: `POST`
-- URL: `https://api.brevo.com/v3/smtp/email`
-- **Evaluate Guide:** Sends a transactional email through Brevo's SMTP API, enabling
-  an agent to deliver an email payload to recipients.
-  Use for: send transactional messages, deliver notifications, send account emails
-  Not supported: inbound email processing, contact management, campaign analytics
+- URL: `https://api.stripe.com/v1/subscriptions`
+- Description: Creates a new subscription on an existing customer. Each customer can
+  have up to 500 active or scheduled subscriptions.
+- **Evaluate Guide:** Creates a recurring subscription for an existing customer and
+  determines how its initial invoice and payment are handled.
+  Use for: start recurring billing, configure initial payment behavior, create
+  scheduled subscriptions
+  Not supported: customer creation, one-time charges, changing existing subscription
+  items
 ```
+
+Note the query includes the provider name. A generic `"payment processing"` search
+returns Adyen, Moneris, and Peach Payments -- not Stripe. Naming the provider is the
+single biggest lever on result quality.
 
 Results are automatically saved to the `orbit-output/` directory as markdown files for later reference.
 
