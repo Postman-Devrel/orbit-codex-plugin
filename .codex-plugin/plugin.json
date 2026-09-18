@@ -1,7 +1,7 @@
 {
   "name": "orbit",
   "version": "1.1.0",
-  "description": "Discover APIs from the Postman API Network using Postman Orbit, an agent-friendly search API designed for AI-powered app design.",
+  "description": "Discover and integrate public APIs using Orbit from Postman, an agent-friendly search API designed for AI-powered app design.",
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "author": "Postman DevRel",
