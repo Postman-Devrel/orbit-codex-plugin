@@ -204,8 +204,9 @@ Not supported: inbound email processing, contact management, campaign analytics
 ## MCP tools
 
 The plugin bundles Orbit's MCP server (`https://mcp.buildwithorbit.ai/mcp`, streamable
-HTTP transport, no auth) via `.mcp.json`, referenced from `.codex-plugin/plugin.json`
-as `"mcpServers": "./.mcp.json"`. It exposes two tools that map one-to-one onto the
+HTTP transport, no auth) in the root `mcp.json`, which portable plugin clients discover
+by fixed path; the legacy `.codex-plugin/plugin.json` manifest points at the same file
+via `"mcpServers": "./mcp.json"`. It exposes two tools that map one-to-one onto the
 REST endpoints and are functionally equivalent to them:
 
 | MCP tool | REST equivalent |

@@ -105,6 +105,35 @@ The plugin is a thin workflow layer over Orbit's MCP server:
 Keeping the API contract on the server side means Orbit can change its parameters
 without breaking installed copies of the plugin.
 
+### Package layout
+
+The plugin ships in the portable [Agent Plugins](https://agent-plugins.org) 1.0 layout,
+with the legacy Codex manifest kept alongside it for older Codex versions:
+
+```
+orbit-codex-plugin/
+|-- plugin.json            # portable manifest (Agent Plugins 1.0)
+|-- mcp.json               # bundled Orbit MCP server
+|-- .codex-plugin/
+|   `-- plugin.json        # legacy Codex manifest, compatibility fallback
+`-- skills/
+    `-- discover/
+        |-- SKILL.md
+        `-- references/orbit-api.md
+```
+
+Portable clients discover `skills/` and `mcp.json` at fixed paths, so the root
+`plugin.json` declares no component paths at all. Codex-specific presentation lives
+under `extensions.com.openai`.
+
+`.codex-plugin/plugin.json` is kept only as a compatibility fallback: Codex versions
+that predate portable plugin support read it and nothing else, so dropping it would
+break them. Newer Codex reads the root manifest and ignores the legacy overlay
+entirely when `extensions.com.openai` is present -- the two are never merged. If you
+edit either manifest, keep the shared fields (`name`, `version`, `description`,
+`author`, `homepage`, `repository`, `keywords`) and the `interface` block in sync so
+the plugin presents identically on both paths.
+
 ### The underlying API
 
 No authentication is required. The MCP tools map one-to-one onto two REST endpoints on
