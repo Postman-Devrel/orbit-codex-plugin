@@ -34,7 +34,7 @@ The bundled `orbit` MCP server provides two tools:
 - **`search`** — find and evaluate public API endpoints
 - **`integrate`** — turn chosen endpoints into an integration task brief
 
-Prefer these tools. If they are unavailable in the current session, read `references/orbit-api.md` and call the equivalent REST endpoints with curl; the request and response shapes are identical.
+Prefer these tools. If they are unavailable in the current session, read `references/orbit-api.md` and call the equivalent REST endpoints with curl. Both transports take equivalent inputs — MCP tool arguments versus REST query parameters and body fields — and return the same information, but not always in the same shape: `search` returns the same JSON document either way, while the MCP `integrate` result may arrive as plain text instead of a JSON envelope.
 
 ## How to search
 
@@ -85,7 +85,9 @@ When the user has a concrete task and has settled on endpoints, call the `integr
 
 The schema allows up to 10 resources, but **keep calls narrow — 2 or 3 related endpoints**. Wide calls have been observed to return a one-line restatement instead of a real brief. To cover more endpoints, make several focused calls grouped by sub-task rather than one wide call.
 
-The response contains a `taskBrief` covering authentication requirements, base URLs, ordered request steps, parameters, expected responses, dependencies between steps, and other considerations. Present the brief and save it alongside the search results.
+The response carries a **task brief** covering authentication requirements, base URLs, ordered request steps, parameters, expected responses, dependencies between steps, and other considerations.
+
+How that brief is wrapped depends on the transport: the MCP `integrate` tool may return it as plain text content, while `POST /v1/integrate` returns JSON with the brief in `data[0].taskBrief`. Read whichever you get — do not assume a JSON envelope on an MCP result. Either way, present the returned brief and save it alongside the search results.
 
 ## Saving results
 

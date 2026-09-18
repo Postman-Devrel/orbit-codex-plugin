@@ -163,6 +163,10 @@ dependencies between steps, and important considerations. It is built from the
 selected endpoints' schemas plus shared variables, auth settings, and descriptions
 defined by their parent APIs.
 
+Over MCP the same brief may come back as plain text content with no JSON envelope, so
+read the result as returned rather than indexing into `data[0].taskBrief`. See
+[MCP tools](#mcp-tools).
+
 ### Errors
 
 `400` invalid input · `404` none of the `id`s could be resolved · `429` rate limited ·
@@ -202,7 +206,7 @@ Not supported: inbound email processing, contact management, campaign analytics
 The plugin bundles Orbit's MCP server (`https://mcp.buildwithorbit.ai/mcp`, streamable
 HTTP transport, no auth) via `.mcp.json`, referenced from `.codex-plugin/plugin.json`
 as `"mcpServers": "./.mcp.json"`. It exposes two tools that map one-to-one onto the
-REST endpoints and return identical payloads:
+REST endpoints and are functionally equivalent to them:
 
 | MCP tool | REST equivalent |
 |----------|-----------------|
@@ -211,10 +215,22 @@ REST endpoints and return identical payloads:
 
 Differences from REST:
 
+**Requests** take equivalent inputs, supplied as MCP tool arguments rather than REST
+query parameters and body fields:
+
 - `limit` and `cursor` are ordinary tool arguments, not query parameters.
 - Both tools accept an optional `clientName` string for anonymous usage analytics.
   Pass `"codex/orbit-plugin"`.
 - `integrate` declares `resources` as 1–10 items in its schema.
+
+**Responses** carry the same information, but the shapes are not identical:
+
+- `search` returns the JSON document documented above, including `data[]` and `meta`.
+- `integrate` may return its task brief as plain text content, whereas
+  `POST /v1/integrate` returns JSON with the brief in `data[0].taskBrief`.
+
+Present the brief to the user however it arrives; do not expect to index into
+`data[0].taskBrief` on an MCP result, and do not treat a plain-text brief as an error.
 
 The tool schemas are the authoritative contract — they are fetched live from the
 server, so they stay correct even when this file drifts.
