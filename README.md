@@ -20,6 +20,19 @@ This lets agents make informed decisions about which APIs to integrate without r
 codex plugin add Postman-Devrel/orbit-codex-plugin
 ```
 
+The plugin bundles Orbit's MCP server, so there is nothing else to configure -- no API
+key, no `codex mcp add`, no edits to `~/.codex/config.toml`. Installing the plugin
+registers the `search` and `integrate` tools, and the skill drives them.
+
+Requires a Codex version that supports plugin-bundled MCP servers over streamable HTTP.
+If your Codex only picks up stdio servers, add the server manually instead:
+
+```toml
+# ~/.codex/config.toml
+[mcp_servers.orbit]
+url = "https://mcp.buildwithorbit.ai/mcp"
+```
+
 ## Usage
 
 Run the `discover` skill with a capability query:
@@ -37,18 +50,30 @@ Search for multiple capabilities at once:
 ### Example output
 
 ```
-### Results for: "payment processing"
+### Results for: "Stripe create subscription"
 
-**Stripe - Create Subscription**
+**Create a subscription** (Stripe / Stripe Billing)
 - Method: `POST`
 - URL: `https://api.stripe.com/v1/subscriptions`
-- Description: Creates a new subscription on an existing customer.
-- **Evaluate Guide:** Use for: recurring billing, subscription lifecycle management,
-  plan upgrades/downgrades. Not supported: one-time payments (use Payment Intents),
-  physical goods shipping, tax calculation (use Stripe Tax).
+- Description: Creates a new subscription on an existing customer. Each customer can
+  have up to 500 active or scheduled subscriptions.
+- **Evaluate Guide:** Creates a recurring subscription for an existing customer and
+  determines how its initial invoice and payment are handled.
+  Use for: start recurring billing, configure initial payment behavior, create
+  scheduled subscriptions
+  Not supported: customer creation, one-time charges, changing existing subscription
+  items
 ```
 
+Note the query includes the provider name. A generic `"payment processing"` search
+returns Adyen, Moneris, and Peach Payments -- not Stripe. Naming the provider is the
+single biggest lever on result quality.
+
 Results are automatically saved to the `orbit-output/` directory as markdown files for later reference.
+
+Once you have chosen endpoints, the skill can also produce a **task brief** -- the auth
+requirements, base URLs, ordered request steps, and gotchas needed to write the
+integration.
 
 ## Design process
 
@@ -62,27 +87,75 @@ Orbit works best when you use it at the start of a project to build an API bluep
 
 4. **Iterate.** Use those gaps as your next round of queries. "Find me APIs that handle payment refunds" or "I need an auth provider that supports token refresh." Each round narrows the design.
 
-5. **Save the blueprint.** The agent saves results to `orbit-output/` as a structured file you can reference throughout the project. This becomes your API design document, readable by both humans and agents.
+5. **Get the task brief.** Once the endpoint set is settled, the agent sends the selected endpoints plus your task to Orbit's `integrate` tool and gets back a brief covering auth, base URLs, and the request sequence -- the implementation plan, before you write code.
+
+6. **Save the blueprint.** The agent saves results to `orbit-output/` as a structured file you can reference throughout the project. This becomes your API design document, readable by both humans and agents.
 
 The goal is to make API selection decisions intentionally at design time, not discover limitations mid-sprint after you've already integrated half the stack.
 
-## The Orbit API
+## How it works
 
-The plugin calls a single endpoint:
+The plugin is a thin workflow layer over Orbit's MCP server:
+
+| | Provided by |
+|---|---|
+| `search` / `integrate` tools, request + response schemas | Orbit's MCP server (bundled) |
+| Capability decomposition, gap analysis, iteration, saved blueprint | This plugin's skill |
+
+Keeping the API contract on the server side means Orbit can change its parameters
+without breaking installed copies of the plugin.
+
+### Package layout
+
+The plugin ships in the portable [Agent Plugins](https://agent-plugins.org) 1.0 layout,
+with the legacy Codex manifest kept alongside it for older Codex versions:
 
 ```
-POST https://fabric-gateway.postmanlabs.com/api/search
-Content-Type: application/json
-
-{"q": "your search query"}
+orbit-codex-plugin/
+|-- plugin.json            # portable manifest (Agent Plugins 1.0)
+|-- mcp.json               # bundled Orbit MCP server
+|-- .codex-plugin/
+|   `-- plugin.json        # legacy Codex manifest, compatibility fallback
+`-- skills/
+    `-- discover/
+        |-- SKILL.md
+        `-- references/orbit-api.md
 ```
 
-No authentication required. The response includes:
+Portable clients discover `skills/` and `mcp.json` at fixed paths, so the root
+`plugin.json` declares no component paths at all. Codex-specific presentation lives
+under `extensions.com.openai`.
 
-- `data[]` - Array of API endpoints with `id`, `name`, `description`, `method`, `url`, and `evaluateGuide`
-- `meta` - Search metadata with `q`, `total`, and `nextCursor`
+`.codex-plugin/plugin.json` is kept only as a compatibility fallback: Codex versions
+that predate portable plugin support read it and nothing else, so dropping it would
+break them. Newer Codex reads the root manifest and ignores the legacy overlay
+entirely when `extensions.com.openai` is present -- the two are never merged. If you
+edit either manifest, keep the shared fields (`name`, `version`, `description`,
+`author`, `homepage`, `repository`, `keywords`) and the `interface` block in sync so
+the plugin presents identically on both paths.
+
+### The underlying API
+
+No authentication is required. The MCP tools map one-to-one onto two REST endpoints on
+`https://api.buildwithorbit.ai`:
+
+| MCP tool | REST equivalent |
+|---|---|
+| `search` | `POST /v1/search` |
+| `integrate` | `POST /v1/integrate` |
+
+`search` takes `q` (max 512 chars) plus optional `limit` (default 10, max 25) and
+`cursor`, and returns `data[]` entries with `id`, `resourceType`, `name`,
+`description`, `method`, `url`, and `evaluateGuide`, alongside `meta` carrying `q`,
+`total`, and `nextCursor`. `integrate` takes a `task` and 1-10 `resources` and returns
+a `taskBrief`.
+
+If the MCP server is ever unreachable, the skill falls back to these REST endpoints,
+documented in [references/orbit-api.md](skills/discover/references/orbit-api.md).
 
 ## Links
 
+- [Orbit documentation](https://www.buildwithorbit.ai/)
+- [Orbit API reference](https://www.buildwithorbit.ai/api-reference)
 - [Postman API Network](https://www.postman.com/explore)
 - [Postman](https://www.postman.com)
